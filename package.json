@@ -1,9 +1,29 @@
 {
-  "name": "za-shiny-guide",
+  "name": "pokemon-shiny-guide",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Modern shiny-hunting planner for Pokemon Legends: Z-A and Scarlet/Violet",
+  "description": "ShinyOps - shiny-hunting planner for Pokemon Legends: Z-A and Scarlet/Violet",
+  "homepage": "https://pokemon-shiny-guide.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shawnpetros/pokemon-shiny-guide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shawnpetros/pokemon-shiny-guide/issues"
+  },
+  "license": "MIT",
+  "author": "Shawn Petros",
+  "keywords": [
+    "pokemon",
+    "shiny-hunting",
+    "pokemon-legends-za",
+    "pokemon-scarlet-violet",
+    "pokeapi",
+    "vite",
+    "react",
+    "typescript"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

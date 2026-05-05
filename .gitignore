@@ -8,3 +8,4 @@ coverage/
 public/sprites/cache/
 *.tsbuildinfo
 .vercel
+.playwright-mcp/
