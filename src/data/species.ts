@@ -1,5 +1,17 @@
 import type { Species, SpeciesAvailability, SpeciesSprites, GameId, PokeType } from '../lib/types';
+import { availabilityBySpecies } from './generated/availability';
 import { generatedPokemon } from './generated/pokemon';
+
+function baselineAvailability(
+  id: string,
+  speciesId: string | undefined,
+): Partial<Record<GameId, SpeciesAvailability>> {
+  const games = availabilityBySpecies[speciesId ?? id] ?? availabilityBySpecies[id];
+  if (!games) return {};
+  const out: Partial<Record<GameId, SpeciesAvailability>> = {};
+  for (const g of games) out[g] = { catchable: true };
+  return out;
+}
 
 interface CuratedSpecies {
   id: string;
@@ -215,13 +227,14 @@ const curatedById = new Map(curated.map((c) => [c.id, c]));
 function mergeOne(base: typeof generatedPokemon[number] | undefined, c: CuratedSpecies | undefined): Species | null {
   if (!base && !c) return null;
   if (base && c) {
+    const baseline = baselineAvailability(base.id, base.speciesId);
     return {
       id: base.id,
       dexNumber: c.dexNumber ?? base.dexNumber,
       name: c.name ?? base.name,
       types: c.types ?? base.types,
       sprites: c.sprites ?? base.sprites,
-      availabilityByGame: c.availabilityByGame,
+      availabilityByGame: { ...baseline, ...c.availabilityByGame },
     };
   }
   if (base) {
@@ -231,7 +244,7 @@ function mergeOne(base: typeof generatedPokemon[number] | undefined, c: CuratedS
       name: base.name,
       types: base.types,
       sprites: base.sprites,
-      availabilityByGame: {},
+      availabilityByGame: baselineAvailability(base.id, base.speciesId),
     };
   }
   // curated only (no generated entry yet, e.g. limited sync)
@@ -242,7 +255,7 @@ function mergeOne(base: typeof generatedPokemon[number] | undefined, c: CuratedS
     name: c.name ?? c.id,
     types: c.types ?? [],
     sprites: c.sprites,
-    availabilityByGame: c.availabilityByGame,
+    availabilityByGame: { ...baselineAvailability(c.id, undefined), ...c.availabilityByGame },
   };
 }
 

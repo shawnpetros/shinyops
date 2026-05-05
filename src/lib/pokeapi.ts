@@ -20,6 +20,10 @@ export interface GeneratedPokemon {
   name: string;
   types: PokeType[];
   sprites: GeneratedSprites;
+  // Set when this row is a form whose base species id differs from `id`
+  // (e.g. id="deoxys-attack", speciesId="deoxys"). Used to look up
+  // pokedex membership in the generated availability map.
+  speciesId?: string;
 }
 
 export interface RawPokemonResponse {
