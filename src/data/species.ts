@@ -259,10 +259,17 @@ const curated: CuratedSpecies[] = [
 
   // ---- Regional forms ----
   // Hisuian forms: native to Pokémon Legends: Arceus. Transferable via HOME
-  // to BDSP/SwSh/SV but not naturally encounterable there.
-  // Caveat: Hisuian Decidueye / Sneasler / Typhlosion returned as wild
-  // catches in SV's Indigo Disk DLC. If you want those promoted from
-  // transfer-only to catchable in SV, override here.
+  // to BDSP/SwSh/SV but not naturally encounterable there, with two
+  // verified exceptions in SV's DLCs:
+  //   - Hisuian Qwilfish: wild in Indigo Disk's Polar Biome + outbreaks.
+  //   - Hisuian Growlithe: gift Pokémon from Perrin's photography sidequest
+  //     in Teal Mask (post-150 Kitakami dex). Single soft-reset roll, not
+  //     a method-driven hunt. Modeled as transfer-only since outbreak /
+  //     sandwich don't apply.
+  // Hisuian starter final-stage forms (Decidueye / Typhlosion / Samurott)
+  // are obtainable in Indigo Disk by evolving wild-catchable pre-evos
+  // (Dartrix / Quilava / Dewott — already correctly tagged in SV via the
+  // base PokeAPI dex). For shiny hunts, target the pre-evo and evolve.
   regionalForm('arcanine-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('avalugg-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('braviary-hisui', ['la'], HISUI_TRANSFER),
@@ -271,7 +278,19 @@ const curated: CuratedSpecies[] = [
   regionalForm('goodra-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('growlithe-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('lilligant-hisui', ['la'], HISUI_TRANSFER),
-  regionalForm('qwilfish-hisui', ['la'], HISUI_TRANSFER),
+  // Hisuian Qwilfish: wild in Indigo Disk DLC's Polar Biome with mass
+  // outbreaks available. Confirmed via Game8 + Nintendo Wire's Indigo Disk
+  // regional-form guide. Promoted from transfer-only to wild-catchable in SV.
+  {
+    id: 'qwilfish-hisui',
+    availabilityByGame: {
+      la: { catchable: true },
+      sv: { catchable: true, notes: 'Indigo Disk DLC: Polar Biome, mass outbreaks available.' },
+      bdsp: { catchable: true, transferOnly: true, notes: 'HOME transfer only - no wild encounters in this game.' },
+      sw: { catchable: true, transferOnly: true, notes: 'HOME transfer only - no wild encounters in this game.' },
+      sh: { catchable: true, transferOnly: true, notes: 'HOME transfer only - no wild encounters in this game.' },
+    },
+  },
   regionalForm('samurott-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('sliggoo-hisui', ['la'], HISUI_TRANSFER),
   regionalForm('sneasel-hisui', ['la'], HISUI_TRANSFER),

@@ -46,4 +46,16 @@ describe('regional form availability', () => {
     expect(s.availabilityByGame.sv).toEqual({ catchable: true });
     expect(s.availabilityByGame.sw?.transferOnly).toBe(true);
   });
+
+  it('Hisuian Qwilfish is wild-catchable in SV (Indigo Disk Polar Biome)', () => {
+    const s = speciesById['qwilfish-hisui'];
+    expect(s).toBeDefined();
+    expect(s.availabilityByGame.la?.catchable).toBe(true);
+    // Indigo Disk DLC promotion: wild + outbreaks, not transfer-only.
+    expect(s.availabilityByGame.sv?.catchable).toBe(true);
+    expect(s.availabilityByGame.sv?.transferOnly).toBeUndefined();
+    // Other mainline games remain transfer-only.
+    expect(s.availabilityByGame.sw?.transferOnly).toBe(true);
+    expect(s.availabilityByGame.bdsp?.transferOnly).toBe(true);
+  });
 });
