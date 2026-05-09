@@ -87,6 +87,11 @@ export type SpeciesStatus = 'needed' | 'hunting' | 'caught' | 'locked';
 export interface SpeciesAvailability {
   catchable: boolean;
   locked?: boolean;
+  // True when the species exists in this game only via HOME transfer (or
+  // similar import path), not in any wild encounter table. Gates which
+  // methods apply: breeding methods (Masuda) work on transferred Pokémon,
+  // outbreak / sandwich / overworld methods do not.
+  transferOnly?: boolean;
   notes?: string;
 }
 

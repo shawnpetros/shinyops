@@ -55,13 +55,22 @@ export function MethodResults({ target, ownedGames, charms }: MethodResultsProps
   }
 
   const lockedAnywhere = availableGames.some(([, a]) => a.locked);
+  const transferOnlyGames = availableGames.filter(([, a]) => a.transferOnly && !a.locked);
 
   const ranked: RankedMethod[] = [];
   for (const [gid, avail] of availableGames) {
     if (avail.locked) {
       continue;
     }
-    const candidates = methods.filter((m) => m.gameId === gid);
+    // Transfer-only species (e.g. Hisuian forms moved to SV via HOME) are
+    // not in any wild encounter table, so outbreak / sandwich / overworld
+    // methods don't apply. Breeding methods (Masuda) still work because the
+    // species exists in the player's box and can be put in the daycare.
+    const candidates = methods.filter((m) => {
+      if (m.gameId !== gid) return false;
+      if (avail.transferOnly && m.huntType !== 'breed') return false;
+      return true;
+    });
     for (const m of candidates) {
       const requiresCharm = methodRequiresCharm(m);
       const available = !requiresCharm || !!charms[gid];
@@ -100,6 +109,16 @@ export function MethodResults({ target, ownedGames, charms }: MethodResultsProps
             .filter(([, a]) => a.locked)
             .map(([gid, a]) => `${gameById[gid].shortName}${a.notes ? ` (${a.notes})` : ''}`)
             .join('; ')}
+        </div>
+      )}
+
+      {transferOnlyGames.length > 0 && (
+        <div className="callout info" style={{ marginBottom: 12 }}>
+          📦 Transfer-only in:{' '}
+          {transferOnlyGames
+            .map(([gid]) => gameById[gid].shortName)
+            .join(', ')}
+          . No wild encounters - breeding methods only (Masuda still works).
         </div>
       )}
 

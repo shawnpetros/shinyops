@@ -2,16 +2,52 @@ import type { Species, SpeciesAvailability, SpeciesSprites, GameId, PokeType } f
 import { availabilityBySpecies } from './generated/availability';
 import { generatedPokemon } from './generated/pokemon';
 
+// Regional forms (Hisuian, Galarian, Alolan, Paldean) must NOT inherit base
+// species availability. Doing so conflated e.g. Hisuian Sneasel with regular
+// Sneasel and broke transfer/encounter-table semantics. Curated entries below
+// supply explicit availability per form.
+const REGIONAL_FORM_SUFFIX = /-(hisui|galar|alola|paldea)$/;
+
 function baselineAvailability(
   id: string,
   speciesId: string | undefined,
 ): Partial<Record<GameId, SpeciesAvailability>> {
-  const games = availabilityBySpecies[speciesId ?? id] ?? availabilityBySpecies[id];
+  const isRegionalForm = REGIONAL_FORM_SUFFIX.test(id);
+  const games = isRegionalForm
+    ? availabilityBySpecies[id]
+    : availabilityBySpecies[speciesId ?? id] ?? availabilityBySpecies[id];
   if (!games) return {};
   const out: Partial<Record<GameId, SpeciesAvailability>> = {};
   for (const g of games) out[g] = { catchable: true };
   return out;
 }
+
+// Build a curated entry for a regional-variant form: catchable in the listed
+// "home" games, transfer-only in the listed "transfer" games. Encodes the
+// canonical wild-encounter region of the form plus the HOME-transferable
+// destinations where breeding works but outbreak/sandwich do not.
+function regionalForm(
+  id: string,
+  homeGames: GameId[],
+  transferGames: GameId[],
+): CuratedSpecies {
+  const availabilityByGame: Partial<Record<GameId, SpeciesAvailability>> = {};
+  for (const g of homeGames) availabilityByGame[g] = { catchable: true };
+  for (const g of transferGames) {
+    availabilityByGame[g] = {
+      catchable: true,
+      transferOnly: true,
+      notes: 'HOME transfer only - no wild encounters in this game.',
+    };
+  }
+  return { id, availabilityByGame };
+}
+
+// HOME transfer destinations relevant to each form's home region.
+const HISUI_TRANSFER: GameId[] = ['bdsp', 'sv', 'sw', 'sh'];
+const GALAR_TRANSFER: GameId[] = ['bdsp', 'sv', 'la'];
+const ALOLA_TRANSFER: GameId[] = ['bdsp', 'sv', 'la'];
+const PALDEA_TRANSFER: GameId[] = ['sw', 'sh', 'la'];
 
 interface CuratedSpecies {
   id: string;
@@ -220,6 +256,74 @@ const curated: CuratedSpecies[] = [
       sw: { catchable: true, locked: true },
     },
   },
+
+  // ---- Regional forms ----
+  // Hisuian forms: native to Pokémon Legends: Arceus. Transferable via HOME
+  // to BDSP/SwSh/SV but not naturally encounterable there.
+  // Caveat: Hisuian Decidueye / Sneasler / Typhlosion returned as wild
+  // catches in SV's Indigo Disk DLC. If you want those promoted from
+  // transfer-only to catchable in SV, override here.
+  regionalForm('arcanine-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('avalugg-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('braviary-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('decidueye-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('electrode-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('goodra-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('growlithe-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('lilligant-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('qwilfish-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('samurott-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('sliggoo-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('sneasel-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('typhlosion-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('voltorb-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('zoroark-hisui', ['la'], HISUI_TRANSFER),
+  regionalForm('zorua-hisui', ['la'], HISUI_TRANSFER),
+
+  // Galarian forms: native to Sword/Shield (Galar region). Transferable via
+  // HOME to BDSP/SV/PLA but not naturally encounterable there.
+  regionalForm('articuno-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('corsola-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('darumaka-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('farfetchd-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('linoone-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('meowth-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('moltres-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('mr-mime-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('ponyta-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('rapidash-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('slowbro-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('slowking-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('slowpoke-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('stunfisk-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('weezing-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('yamask-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('zapdos-galar', ['sw', 'sh'], GALAR_TRANSFER),
+  regionalForm('zigzagoon-galar', ['sw', 'sh'], GALAR_TRANSFER),
+
+  // Alolan forms: native to SM/USUM (not in this dataset's game list).
+  // Wild-catchable in SwSh via the Crown Tundra DLC. Transferable elsewhere.
+  regionalForm('diglett-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('dugtrio-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('exeggutor-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('geodude-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('golem-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('graveler-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('grimer-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('marowak-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('meowth-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('muk-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('ninetales-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('persian-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('raichu-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('raticate-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('rattata-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('sandshrew-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('sandslash-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+  regionalForm('vulpix-alola', ['sw', 'sh'], ALOLA_TRANSFER),
+
+  // Paldean forms: native to SV. Paldean Wooper evolves into Clodsire.
+  regionalForm('wooper-paldea', ['sv'], PALDEA_TRANSFER),
 ];
 
 const curatedById = new Map(curated.map((c) => [c.id, c]));
